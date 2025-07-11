@@ -5,7 +5,7 @@
 **Technische Kurzbeschreibung**  
 Dieses Skript automatisiert den Abruf und die Aufbereitung von IP-Blocklisten, die von [ipv64.net](https://ipv64.net/) bereitgestellt werden. Die Blocklisten enthalten bekannte schädliche, missbräuchliche oder unerwünschte IP-Adressen (z. B. Spamhaus, TOR-Exit-Nodes, Botnetze oder länderspezifische IP-Bereiche).
 
-Das Skript lädt die Listen automatisch herunter, filtert und bereinigt die Einträge, entfernt Duplikate sowie überlappende Netzbereiche und speichert die finalen Adressen getrennt als **IPv4**- und **IPv6**-Listen. Diese Listen werden anschließend automatisch in das Verzeichnis einer **selbst kompilierten NGINX Web Application Firewall (ngx_waf)** kopiert.
+Das Skript lädt die Listen automatisch herunter, filtert und bereinigt die Einträge, entfernt Duplikate sowie überlappende Netzbereiche und speichert die finalen Adressen getrennt als **IPv4**-Listen. Diese Listen werden anschließend automatisch in das Verzeichnis einer **selbst kompilierten NGINX Web Application Firewall (ngx_waf)** kopiert.
 
 Zum Abschluss wird der selbst kompilierte NGINX-Webserver neu geladen, um sicherzustellen, dass die aktuellen Sperrlisten eingebunden sind.
 
@@ -24,7 +24,7 @@ Ich selbst bin **kein professioneller Programmierer**, daher freue ich mich übe
 **Technical Overview**  
 This script automates the retrieval and processing of IP blocklists provided by [ipv64.net](https://ipv64.net/). These blocklists include known malicious, abusive, or unwanted IP addresses (e.g., Spamhaus, TOR exit nodes, botnets, or country-specific IP ranges).
 
-The script automatically downloads the lists, filters and cleans the entries, removes duplicates and overlapping networks, and saves the final addresses as separate **IPv4** and **IPv6** files. These lists are then automatically copied to the directory of a **self-compiled NGINX Web Application Firewall (ngx_waf)**.
+The script automatically downloads the lists, filters and cleans the entries, removes duplicates and overlapping networks, and saves the final addresses as separate **IPv4** files. These lists are then automatically copied to the directory of a **self-compiled NGINX Web Application Firewall (ngx_waf)**.
 
 Finally, the self-compiled NGINX web server is reloaded to ensure the current blocklists are in use.
 
