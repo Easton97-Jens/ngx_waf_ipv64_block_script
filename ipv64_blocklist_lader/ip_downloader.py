@@ -73,9 +73,11 @@ def clean_line(line):
 def is_valid_network(network):
     try:
         net_obj = ipaddress.ip_network(network, strict=False)
-        return net_obj.version
+        if net_obj.version == 4:
+            return True
     except ValueError:
-        return None
+        return False
+    return False
 
 
 async def fetch(session, url):
@@ -115,7 +117,6 @@ async def bounded_fetch(sem, session, url):
 
 async def download_all(links):
     ipv4_list = []
-    ipv6_list = []
     total_lines = 0
 
     sem = asyncio.Semaphore(MAX_CONNECTIONS)
@@ -128,14 +129,10 @@ async def download_all(links):
             total_lines += len(lines)
             for line in lines:
                 network = clean_line(line)
-                if network:
-                    version = is_valid_network(network)
-                    if version == 4:
-                        ipv4_list.append(network)
-                    elif version == 6:
-                        ipv6_list.append(network)
+                if network and is_valid_network(network):
+                    ipv4_list.append(network)
 
-    return ipv4_list, ipv6_list, total_lines
+    return ipv4_list, total_lines
 
 
 def remove_overlaps(networks):
@@ -158,26 +155,21 @@ def main():
         logger.error("⚠️ Keine Links in config.txt gefunden!")
         return
 
-    ipv4_list, ipv6_list, total_lines = asyncio.run(download_all(links))
+    ipv4_list, total_lines = asyncio.run(download_all(links))
 
     logger.info(f"➡️ Gesamt geladene Zeilen (vor Filter): {total_lines}")
 
     before4 = len(ipv4_list)
-    before6 = len(ipv6_list)
 
     ipv4_list = remove_overlaps(ipv4_list)
-    ipv6_list = remove_overlaps(ipv6_list)
 
     removed4 = before4 - len(ipv4_list)
-    removed6 = before6 - len(ipv6_list)
 
     logger.info(f"🧹 Überlappungen/Redundanzen IPv4 entfernt: {removed4}")
-    logger.info(f"🧹 Überlappungen/Redundanzen IPv6 entfernt: {removed6}")
 
     save_networks(ipv4_list, "ipv4_unique.txt")
-    save_networks(ipv6_list, "ipv6_unique.txt")
 
-    logger.info(f"✅ Final IPv4: {len(ipv4_list)} — IPv6: {len(ipv6_list)}")
+    logger.info(f"✅ Final IPv4: {len(ipv4_list)}")
 
     if failed_links:
         with open("failed_links.txt", "w") as f:
@@ -195,10 +187,8 @@ Run abgeschlossen: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ➡️ Gesamt geladene Zeilen: {total_lines}
 🧹 Überlappungen/Redundanzen IPv4 entfernt: {removed4}
-🧹 Überlappungen/Redundanzen IPv6 entfernt: {removed6}
 
 💾 IPv4 gespeichert: {len(ipv4_list)}
-💾 IPv6 gespeichert: {len(ipv6_list)}
 
 ❌ Gescheiterte Links: {len(failed_links)}
 
@@ -208,14 +198,11 @@ Alles OK!
         f.write(summary.strip())
     logger.info("📄 Zusammenfassung geschrieben: summary.txt")
 
-    # === Listen in WAF-Ordner kopieren ===
+    # === Liste in WAF-Ordner kopieren ===
     dest_ipv4 = "/nginx_custom/nginx/ngx_waf/ipv4"
-    dest_ipv6 = "/nginx_custom/nginx/ngx_waf/ipv6"
 
     shutil.copyfile("ipv4_unique.txt", dest_ipv4)
-    shutil.copyfile("ipv6_unique.txt", dest_ipv6)
     logger.info(f"📂 IPv4-Liste nach {dest_ipv4} kopiert")
-    logger.info(f"📂 IPv6-Liste nach {dest_ipv6} kopiert")
 
     # === Nginx neu laden ===
     try:
